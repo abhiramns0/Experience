@@ -9,7 +9,7 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background-color: #001f3f; /* Dark blue background fallback */
+            background-color: radial-gradient(1200px 800px at 70% 30%, #0a2a44, #061826 60%, #031019 100%);/*#001f3f; /* Dark blue background fallback */
         }
         canvas {
             position: fixed;
@@ -36,25 +36,25 @@
 
     <script>
         // Customizable variables for control over texture, numbers, and effects
-        const NUM_PARTICLES = 300; // 150 Number of particles (dots/droplets); increase for denser web
+        const NUM_PARTICLES = 200; // 150 Number of particles (dots/droplets); increase for denser web
         const PARTICLE_SIZE_MIN = 1; // Min particle size
-        const PARTICLE_SIZE_MAX = 6; // 3 Max particle size for natural variation
-        const PARTICLE_SPEED = 0.1; // Initial subtle movement speed (lower for less drift)
+        const PARTICLE_SIZE_MAX = 3; // 3 Max particle size for natural variation
+        const PARTICLE_SPEED = 0.2; // 0.1 Initial subtle movement speed (lower for less drift)
         const CONNECTION_DISTANCE = 150; // Max distance for particle connections (spider web strings)
-        const MOUSE_CONNECTION_DISTANCE = 200; // Max distance for connections to cursor
+        const MOUSE_CONNECTION_DISTANCE = 180; //200 Max distance for connections to cursor
         const REPEL_DISTANCE = 150; // Radius for repelling effect
-        const REPEL_STRENGTH = 1.0; // Strength of repel (adjust for subtlety)
-        const GLOW_BLUR = 15; // Glow intensity for water droplet and light effect
-        const LINE_WIDTH = 1; // .8 Thin string-like lines for web texture
+        const REPEL_STRENGTH = 1.25; // Strength of repel (adjust for subtlety)
+        const GLOW_BLUR = 30; // 15 Glow intensity for water droplet and light effect
+        const LINE_WIDTH = .5; // .8 Thin string-like lines for web texture
         const SPRING_STRENGTH = 0.005; // Strength of restoring force to original position (subtle)
-        const DAMPING = 0.95; // Damping factor for smooth, natural motion
+        const DAMPING = 1.5; // .95 Damping factor for smooth, natural motion
 
         // For atmosphere: add background bokeh particles (adjusted to be smaller and more integrated)
         const NUM_BOKEH = 30; // Fewer for less disconnection
         const BOKEH_SIZE_MIN = 1;
-        const BOKEH_SIZE_MAX = 5; //10
-        const BOKEH_OPACITY = 0.15; // Lower opacity for subtle integration
-        const BOKEH_SPEED = 0.05; // Very slow for ambient feel
+        const BOKEH_SIZE_MAX = 6; //10
+        const BOKEH_OPACITY = 0.1 ; // 0.15 Lower opacity for subtle integration
+        const BOKEH_SPEED = 0.5; // .05 Very slow for ambient feel
 
         const canvas = document.getElementById('bg');
         const ctx = canvas.getContext('2d');
@@ -106,12 +106,12 @@
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fillStyle = this.isBokeh 
-                    ? `rgba(0, 211, 218, ${this.opacity})` // 173, 216, 230
-                    : `rgba(0, 34, 53, ${this.opacity})`; // 173, 216, 230 Light blue with opacity
+                    ? `rgba(173, 216, 230, ${this.opacity})` // RE ADJ
+                    : `rgba(173, 216, 230, ${this.opacity})`; // RE ADJ Light blue with opacity
                 ctx.shadowColor = 'rgba(173, 216, 230, 0.8)'; // Glow color for light/water droplet effect
                 ctx.shadowBlur = this.isBokeh ? GLOW_BLUR * 2 : GLOW_BLUR; // Stronger blur for bokeh atmosphere
                 ctx.fill();
-                ctx.shadowBlur = 0; // Reset to avoid affecting lines
+                ctx.shadowBlur = 0.5; // 0 Reset to avoid affecting lines
             }
         }
 
@@ -149,7 +149,7 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            ctx.fillStyle = '#001f3f'; // Dark blue background
+            ctx.fillStyle = radial-gradient(1200px 800px at 70% 30%, #0a2a44, #061826 60%, #031019 100%) //'#001f3f'; // Dark blue background
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Update and draw bokeh for atmosphere first (background layer)
