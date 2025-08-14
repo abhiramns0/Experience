@@ -88,7 +88,7 @@
                          - number (pixels), or
                          - { rel: number } -> relative to min(canvas dim)
     */
-    const BASE_DENSITY = 0.5; // 0.15 baseline acceptance probability (0..1)
+    const BASE_DENSITY = 0.15; // 0.15 baseline acceptance probability (0..1)
 
     const DENSITY_REGIONS = [
       // Default diagonal band: bottom-left → top-right
@@ -96,7 +96,7 @@
         type: 'band',
         from: [0.0, 1.0],
         to:   [1.0, 0.0],
-        radius: { rel: 0.5 }, // 0.08 ~8% of the min dimension
+        radius: { rel: 0.1 }, // 0.08 ~8% of the min dimension
         weight: 0.75            // add to acceptance probability
       },
       // Example extra rectangle hotspot (uncomment to use):
