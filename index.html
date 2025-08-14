@@ -39,28 +39,29 @@
         const NUM_PARTICLES = 150; // Number of particles (dots/droplets); increase for denser web
         const PARTICLE_SIZE_MIN = 1; // Min particle size
         const PARTICLE_SIZE_MAX = 3; // Max particle size for natural variation
-        const PARTICLE_SPEED = 0.5; // Initial subtle movement speed (lower for less drift)
+        const PARTICLE_SPEED = 0.1; // Initial subtle movement speed (lower for less drift)
         const CONNECTION_DISTANCE = 150; // Max distance for particle connections (spider web strings)
         const MOUSE_CONNECTION_DISTANCE = 200; // Max distance for connections to cursor
-        const REPEL_DISTANCE = 180; // Radius for repelling effect
-        const REPEL_STRENGTH = 5.0; // Strength of repel (adjust for subtlety)
-        const GLOW_BLUR = 5; // Glow intensity for water droplet and light effect
+        const REPEL_DISTANCE = 150; // Radius for repelling effect
+        const REPEL_STRENGTH = 1.0; // Strength of repel (adjust for subtlety)
+        const GLOW_BLUR = 15; // Glow intensity for water droplet and light effect
         const LINE_WIDTH = 1.2; // Increased thickness for string-like texture
-        const SPRING_STRENGTH = 0.5; // Strength of restoring force to original position (subtle)
-        const DAMPING = 0; // Damping factor for smooth, natural motion
-        const FADE_FACTOR = 0.75; // Lerp factor for slow connection formation (smaller = slower fade in/out)
-        const LINE_GLOW_BLUR = 2; // Subtle glow for lines to add atmospheric/dreamy effect and texture
-        const LINE_GLOW_OPACITY = 0.1; // Glow opacity for lines
+        const SPRING_STRENGTH = 0.005; // Strength of restoring force to original position (subtle)
+        const DAMPING = 0.95; // Damping factor for smooth, natural motion
+        const FADE_FACTOR = 0.2; // Increased for faster connection formation/fade (smoother, less lag)
+        const LINE_GLOW_BLUR = 5; // Subtle glow for lines to add atmospheric/dreamy effect and texture
+        const LINE_GLOW_OPACITY = 0.5; // Glow opacity for lines
+        const JITTER_STRENGTH = 0.01; // Subtle constant jitter for perpetual movement
 
         // Particle generation bias for concentration control (options: 'uniform', 'diagonal_ascending')
         const GENERATION_BIAS = 'diagonal_ascending'; // Set to 'uniform' for even distribution
-        const BIAS_SPREAD = 0.4; // Spread factor around the bias line (0-1, higher = more dispersed)
+        const BIAS_SPREAD = 0.2; // Spread factor around the bias line (0-1, higher = more dispersed)
 
         // For atmosphere: add background bokeh particles (adjusted to be smaller and more integrated)
         const NUM_BOKEH = 30; // Fewer for less disconnection
-        const BOKEH_SIZE_MIN = 2;
-        const BOKEH_SIZE_MAX = 50;
-        const BOKEH_OPACITY = 0.05; // Lower opacity for subtle integration
+        const BOKEH_SIZE_MIN = 3;
+        const BOKEH_SIZE_MAX = 10;
+        const BOKEH_OPACITY = 0.15; // Lower opacity for subtle integration
         const BOKEH_SPEED = 0.05; // Very slow for ambient feel
 
         const canvas = document.getElementById('bg');
@@ -108,6 +109,10 @@
                 this.vx += springX;
                 this.vy += springY;
 
+                // Add subtle jitter for constant movement
+                this.vx += (Math.random() - 0.5) * JITTER_STRENGTH;
+                this.vy += (Math.random() - 0.5) * JITTER_STRENGTH;
+
                 // Damping for smooth, damped oscillation
                 this.vx *= DAMPING;
                 this.vy *= DAMPING;
@@ -125,10 +130,12 @@
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fillStyle = this.isBokeh 
-                    ? `rgba(173, 216, 230, ${this.opacity})` 
-                    : `rgba(173, 216, 230, ${this.opacity})`; // Light blue with opacity
-                ctx.shadowColor = 'rgba(173, 216, 230, 0.8)'; // Glow color for light/water droplet effect
-                ctx.shadowBlur = this.isBokeh ? GLOW_BLUR * 1.5 : GLOW_BLUR; // Slightly reduced for integration, but dreamy
+                    ? `rgba(0, 31, 63, ${this.opacity})` // Darker blue for bokeh
+                    : `rgba(173, 216, 230, ${this.opacity})`; // Light blue for main particles
+                ctx.shadowColor = this.isBokeh 
+                    ? 'rgba(0, 31, 63, 0.8)' // Darker glow for bokeh
+                    : 'rgba(173, 216, 230, 0.8)'; // Light glow for main
+                ctx.shadowBlur = this.isBokeh ? GLOW_BLUR * 1.5 : GLOW_BLUR; // Blurred effect
                 ctx.fill();
                 ctx.shadowBlur = 0; // Reset to avoid affecting lines
             }
@@ -143,7 +150,7 @@
             bokehParticles.push(new Particle(true));
         }
 
-        // Opacity matrices for slow connection formation
+        // Opacity matrices for connection formation
         const opacityMatrix = Array.from({length: NUM_PARTICLES}, () => Array(NUM_PARTICLES).fill(0));
         const mouseOpacity = new Array(NUM_PARTICLES).fill(0);
 
@@ -173,10 +180,10 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // Background gradient to match reference (diagonal from darker bottom-left to lighter top-right)
+            // Background gradient to match reference (diagonal from darker bottom-left to lighter top-right, but overall darker)
             const gradient = ctx.createLinearGradient(0, canvas.height, canvas.width, 0);
-            gradient.addColorStop(0, '#000033'); // Darker navy blue
-            gradient.addColorStop(1, '#001f5e'); // Lighter deep blue for futuristic vibe
+            gradient.addColorStop(0, '#000022'); // Darker navy blue at bottom-left
+            gradient.addColorStop(1, '#001144'); // Relatively lighter deep blue at top-right, aligned with dot concentration
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -186,7 +193,7 @@
                 p.draw();
             });
 
-            // Draw connections between particles (spider web effect) with slow fade and glow texture
+            // Draw connections between particles (spider web effect) with fade and glow texture
             ctx.shadowColor = `rgba(173, 216, 230, ${LINE_GLOW_OPACITY})`;
             ctx.shadowBlur = LINE_GLOW_BLUR;
             for (let i = 0; i < NUM_PARTICLES; i++) {
@@ -198,7 +205,7 @@
                     if (dist < CONNECTION_DISTANCE) {
                         targetOpacity = (1 - dist / CONNECTION_DISTANCE) * 0.5;
                     }
-                    // Slow lerp for natural, slow formation
+                    // Lerp for formation/fade
                     opacityMatrix[i][j] += (targetOpacity - opacityMatrix[i][j]) * FADE_FACTOR;
                     if (opacityMatrix[i][j] > 0.01) {
                         ctx.strokeStyle = `rgba(173, 216, 230, ${opacityMatrix[i][j]})`;
@@ -233,7 +240,7 @@
                     }
                 });
 
-                // Temporary connections to cursor with slow fade and glow
+                // Temporary connections to cursor with fade and glow
                 ctx.shadowColor = `rgba(173, 216, 230, ${LINE_GLOW_OPACITY})`;
                 ctx.shadowBlur = LINE_GLOW_BLUR;
                 particles.forEach((p, k) => {
@@ -244,7 +251,7 @@
                     if (dist < MOUSE_CONNECTION_DISTANCE) {
                         targetOpacity = (1 - dist / MOUSE_CONNECTION_DISTANCE) * 0.8;
                     }
-                    // Slow lerp for natural formation
+                    // Lerp for formation/fade
                     mouseOpacity[k] += (targetOpacity - mouseOpacity[k]) * FADE_FACTOR;
                     if (mouseOpacity[k] > 0.01) {
                         ctx.strokeStyle = `rgba(173, 216, 230, ${mouseOpacity[k]})`;
