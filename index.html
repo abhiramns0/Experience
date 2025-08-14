@@ -9,30 +9,21 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background: radial-gradient(ellipse at center, #0a2645 0%, #001122 50%, #000814 100%);
+            background-color: #001f3f; /* Dark blue background fallback */
         }
         canvas {
             position: fixed;
             top: 0;
             left: 0;
-            z-index: -1;
+            z-index: -1; /* Behind content */
         }
+        /* Add your other CSS for portfolio content here */
         .content {
             position: relative;
             z-index: 1;
             color: white;
             text-align: center;
             padding: 20%;
-            text-shadow: 0 0 20px rgba(173, 216, 230, 0.5);
-        }
-        h1 {
-            font-size: 3em;
-            margin-bottom: 0.5em;
-            text-shadow: 0 0 30px rgba(173, 216, 230, 0.8);
-        }
-        p {
-            font-size: 1.2em;
-            opacity: 0.9;
         }
     </style>
 </head>
@@ -44,43 +35,31 @@
     </div>
 
     <script>
-        // Enhanced customizable variables
-        const NUM_PARTICLES = 120;
-        const PARTICLE_SIZE_MIN = 1;
-        const PARTICLE_SIZE_MAX = 5;
-        const PARTICLE_SPEED = 0.5;
-        const CONNECTION_DISTANCE = 180;
-        const MOUSE_CONNECTION_DISTANCE = 250;
-        const REPEL_DISTANCE = 120;
-        const REPEL_STRENGTH = 5;
-        const GLOW_BLUR = 20;
-        const LINE_WIDTH_MIN = 1;
-        const LINE_WIDTH_MAX = 2.5;
-        const SPRING_STRENGTH = 0.003;
-        const DAMPING = 0.96;
-        
-        // Connection animation control
-        const CONNECTION_FORMATION_SPEED = 0.5; // Slower formation
-        const CONNECTION_FADE_SPEED = 0.5;
-        
-        // Atmospheric elements
-        const NUM_BOKEH = 25;
-        const BOKEH_SIZE_MIN = 2;
-        const BOKEH_SIZE_MAX = 12;
-        const BOKEH_OPACITY = 0.12;
-        const BOKEH_SPEED = 0.03;
-        
-        // Particle concentration zones (0 = center, 1 = edges)
-        const CONCENTRATION_ZONES = [
-            { centerX: 0.2, centerY: 0.3, radius: 0.25, density: 1.5 },
-            { centerX: 0.8, centerY: 0.7, radius: 0.3, density: 1.3 },
-            { centerX: 0.5, centerY: 0.5, radius: 0.4, density: 0.8 },
-            { centerX: 0.1, centerY: 0.8, radius: 0.2, density: 1.2 }
-        ];
+        // Customizable variables for control over texture, numbers, and effects
+        const NUM_PARTICLES = 150; // Number of particles (dots/droplets); increase for denser web
+        const PARTICLE_SIZE_MIN = 1; // Min particle size
+        const PARTICLE_SIZE_MAX = 3; // Max particle size for natural variation
+        const PARTICLE_SPEED = 0.2; // Initial subtle movement speed (lower for less drift)
+        const CONNECTION_DISTANCE = 150; // Max distance for particle connections (spider web strings)
+        const MOUSE_CONNECTION_DISTANCE = 200; // Max distance for connections to cursor
+        const REPEL_DISTANCE = 150; // Radius for repelling effect
+        const REPEL_STRENGTH = 1.0; // Strength of repel (adjust for subtlety)
+        const GLOW_BLUR = 15; // Glow intensity for water droplet and light effect
+        const LINE_WIDTH = 0.8; // Thin string-like lines for web texture
+        const SPRING_STRENGTH = 0.05; // Strength of restoring force to original position (subtle)
+        const DAMPING = 1.5; // Damping factor for smooth, natural motion
+
+        // For atmosphere: add background bokeh particles (adjusted to be smaller and more integrated)
+        const NUM_BOKEH = 30; // Fewer for less disconnection
+        const BOKEH_SIZE_MIN = 3;
+        const BOKEH_SIZE_MAX = 10;
+        const BOKEH_OPACITY = 0.05; // Lower opacity for subtle integration
+        const BOKEH_SPEED = 0.5; // Very slow for ambient feel
 
         const canvas = document.getElementById('bg');
         const ctx = canvas.getContext('2d');
 
+        // Handle resize for full-screen coverage
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -88,198 +67,51 @@
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
-        // Enhanced gradient background
-        function drawGradientBackground() {
-            const gradient = ctx.createRadialGradient(
-                canvas.width * 0.5, canvas.height * 0.3, 0,
-                canvas.width * 0.5, canvas.height * 0.3, Math.max(canvas.width, canvas.height)
-            );
-            gradient.addColorStop(0, '#0a2645');
-            gradient.addColorStop(0.4, '#001835');
-            gradient.addColorStop(0.7, '#001122');
-            gradient.addColorStop(1, '#000814');
-            
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-
-        // Get weighted random position based on concentration zones
-        function getWeightedPosition() {
-            let x, y;
-            
-            // Random chance to use concentration zones vs uniform distribution
-            if (Math.random() < 0.7) {
-                const zone = CONCENTRATION_ZONES[Math.floor(Math.random() * CONCENTRATION_ZONES.length)];
-                const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * zone.radius * Math.min(canvas.width, canvas.height);
-                
-                x = (zone.centerX * canvas.width) + Math.cos(angle) * distance;
-                y = (zone.centerY * canvas.height) + Math.sin(angle) * distance;
-            } else {
-                x = Math.random() * canvas.width;
-                y = Math.random() * canvas.height;
-            }
-            
-            // Ensure particles stay within bounds
-            x = Math.max(0, Math.min(canvas.width, x));
-            y = Math.max(0, Math.min(canvas.height, y));
-            
-            return { x, y };
-        }
-
-        class Connection {
-            constructor(p1, p2) {
-                this.p1 = p1;
-                this.p2 = p2;
-                this.opacity = 0;
-                this.targetOpacity = 0;
-                this.age = 0;
-            }
-
-            update(distance) {
-                this.age++;
-                
-                if (distance < CONNECTION_DISTANCE) {
-                    this.targetOpacity = (1 - distance / CONNECTION_DISTANCE) * 0.6;
-                } else {
-                    this.targetOpacity = 0;
-                }
-
-                // Slower formation and dissolution
-                if (this.opacity < this.targetOpacity) {
-                    this.opacity += CONNECTION_FORMATION_SPEED;
-                } else if (this.opacity > this.targetOpacity) {
-                    this.opacity -= CONNECTION_FADE_SPEED;
-                }
-                
-                this.opacity = Math.max(0, Math.min(1, this.opacity));
-            }
-
-            draw() {
-                if (this.opacity > 0.01) {
-                    const dx = this.p2.x - this.p1.x;
-                    const dy = this.p2.y - this.p1.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    // Dynamic line width based on connection strength
-                    const lineWidth = LINE_WIDTH_MIN + (LINE_WIDTH_MAX - LINE_WIDTH_MIN) * this.opacity;
-                    
-                    // Create textured line effect with subtle glow
-                    ctx.save();
-                    ctx.globalAlpha = this.opacity;
-                    
-                    // Outer glow
-                    ctx.strokeStyle = `rgba(100, 200, 255, ${this.opacity * 0.3})`;
-                    ctx.lineWidth = lineWidth + 2;
-                    ctx.shadowColor = 'rgba(173, 216, 230, 0.8)';
-                    ctx.shadowBlur = 8;
-                    ctx.beginPath();
-                    ctx.moveTo(this.p1.x, this.p1.y);
-                    ctx.lineTo(this.p2.x, this.p2.y);
-                    ctx.stroke();
-                    
-                    // Core line with texture
-                    ctx.shadowBlur = 0;
-                    ctx.strokeStyle = `rgba(173, 216, 230, ${this.opacity})`;
-                    ctx.lineWidth = lineWidth;
-                    ctx.beginPath();
-                    ctx.moveTo(this.p1.x, this.p1.y);
-                    ctx.lineTo(this.p2.x, this.p2.y);
-                    ctx.stroke();
-                    
-                    // Inner highlight for texture
-                    if (this.opacity > 0.3) {
-                        ctx.strokeStyle = `rgba(220, 240, 255, ${this.opacity * 0.4})`;
-                        ctx.lineWidth = Math.max(0.5, lineWidth * 0.3);
-                        ctx.beginPath();
-                        ctx.moveTo(this.p1.x, this.p1.y);
-                        ctx.lineTo(this.p2.x, this.p2.y);
-                        ctx.stroke();
-                    }
-                    
-                    ctx.restore();
-                }
-            }
-        }
-
         class Particle {
             constructor(isBokeh = false) {
-                const pos = getWeightedPosition();
-                this.x = pos.x;
-                this.y = pos.y;
-                this.homeX = this.x;
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.homeX = this.x; // Original position to return to
                 this.homeY = this.y;
                 this.vx = (Math.random() - 0.5) * (isBokeh ? BOKEH_SPEED : PARTICLE_SPEED);
                 this.vy = (Math.random() - 0.5) * (isBokeh ? BOKEH_SPEED : PARTICLE_SPEED);
                 this.size = isBokeh 
                     ? Math.random() * (BOKEH_SIZE_MAX - BOKEH_SIZE_MIN) + BOKEH_SIZE_MIN 
                     : Math.random() * (PARTICLE_SIZE_MAX - PARTICLE_SIZE_MIN) + PARTICLE_SIZE_MIN;
-                this.opacity = isBokeh ? BOKEH_OPACITY : 0.7 + Math.random() * 0.3;
+                this.opacity = isBokeh ? BOKEH_OPACITY : 0.8 + Math.random() * 0.2; // Slight variation for natural feel
                 this.isBokeh = isBokeh;
-                this.pulseOffset = Math.random() * Math.PI * 2;
-                this.connections = new Map();
             }
 
             update() {
+                // Spring force to return to home position
                 const springX = (this.homeX - this.x) * SPRING_STRENGTH;
                 const springY = (this.homeY - this.y) * SPRING_STRENGTH;
                 this.vx += springX;
                 this.vy += springY;
 
+                // Damping for smooth, damped oscillation
                 this.vx *= DAMPING;
                 this.vy *= DAMPING;
 
+                // Update position
                 this.x += this.vx;
                 this.y += this.vy;
 
+                // Bounce off edges to stay on screen
                 if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
                 if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
             }
 
-            draw(time) {
-                ctx.save();
-                
-                // Subtle pulsing effect
-                const pulse = 1 + Math.sin(time * 0.002 + this.pulseOffset) * 0.1;
-                const currentSize = this.size * pulse;
-                
-                // Enhanced glow effect
-                const glowSize = currentSize + 4;
-                const gradient = ctx.createRadialGradient(
-                    this.x, this.y, 0,
-                    this.x, this.y, glowSize
-                );
-                
-                if (this.isBokeh) {
-                    gradient.addColorStop(0, `rgba(173, 216, 230, ${this.opacity})`);
-                    gradient.addColorStop(0.4, `rgba(173, 216, 230, ${this.opacity * 0.4})`);
-                    gradient.addColorStop(1, 'rgba(173, 216, 230, 0)');
-                } else {
-                    gradient.addColorStop(0, `rgba(220, 240, 255, ${this.opacity})`);
-                    gradient.addColorStop(0.3, `rgba(173, 216, 230, ${this.opacity * 0.8})`);
-                    gradient.addColorStop(0.7, `rgba(100, 200, 255, ${this.opacity * 0.3})`);
-                    gradient.addColorStop(1, 'rgba(100, 200, 255, 0)');
-                }
-
-                // Draw glow
+            draw() {
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, glowSize, 0, Math.PI * 2);
-                ctx.fillStyle = gradient;
-                ctx.fill();
-
-                // Draw core particle with enhanced glow
-                ctx.shadowColor = this.isBokeh 
-                    ? 'rgba(173, 216, 230, 0.6)' 
-                    : 'rgba(220, 240, 255, 0.9)';
-                ctx.shadowBlur = GLOW_BLUR;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, currentSize, 0, Math.PI * 2);
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fillStyle = this.isBokeh 
                     ? `rgba(173, 216, 230, ${this.opacity})` 
-                    : `rgba(255, 255, 255, ${this.opacity})`;
+                    : `rgba(173, 216, 230, ${this.opacity})`; // Light blue with opacity
+                ctx.shadowColor = 'rgba(173, 216, 230, 0.8)'; // Glow color for light/water droplet effect
+                ctx.shadowBlur = this.isBokeh ? GLOW_BLUR * 2 : GLOW_BLUR; // Stronger blur for bokeh atmosphere
                 ctx.fill();
-                
-                ctx.restore();
+                ctx.shadowBlur = 0; // Reset to avoid affecting lines
             }
         }
 
@@ -292,9 +124,7 @@
             bokehParticles.push(new Particle(true));
         }
 
-        const connections = new Map();
         let mouse = { x: undefined, y: undefined };
-        let animationTime = 0;
 
         // Mouse and touch events
         window.addEventListener('mousemove', (e) => {
@@ -307,6 +137,7 @@
                 mouse.y = e.touches[0].clientY;
             }
         });
+        // Reset mouse on leave/out
         window.addEventListener('mouseleave', () => {
             mouse.x = undefined;
             mouse.y = undefined;
@@ -318,53 +149,48 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            animationTime += 16;
-            
-            drawGradientBackground();
+            ctx.fillStyle = '#001f3f'; // Dark blue background
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Update and draw atmospheric bokeh
+            // Update and draw bokeh for atmosphere first (background layer)
             bokehParticles.forEach((p) => {
                 p.update();
-                p.draw(animationTime);
+                p.draw();
             });
 
-            // Update connections between particles
+            // Draw connections between particles (spider web effect)
             for (let i = 0; i < particles.length; i++) {
                 for (let j = i + 1; j < particles.length; j++) {
-                    const key = `${i}-${j}`;
                     const dx = particles[i].x - particles[j].x;
                     const dy = particles[i].y - particles[j].y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (!connections.has(key)) {
-                        connections.set(key, new Connection(particles[i], particles[j]));
-                    }
-                    
-                    const connection = connections.get(key);
-                    connection.update(distance);
-                    connection.draw();
-                    
-                    // Clean up old connections
-                    if (connection.opacity <= 0 && connection.targetOpacity <= 0) {
-                        connections.delete(key);
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < CONNECTION_DISTANCE) {
+                        // Opacity increases as particles get closer (natural forming effect)
+                        const opacity = (1 - dist / CONNECTION_DISTANCE) * 0.5;
+                        ctx.strokeStyle = `rgba(173, 216, 230, ${opacity})`;
+                        ctx.lineWidth = LINE_WIDTH;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
                     }
                 }
             }
 
-            // Update and draw main particles
+            // Update and draw particles (foreground droplets with glow)
             particles.forEach((p) => {
                 p.update();
-                p.draw(animationTime);
+                p.draw();
             });
 
-            // Mouse interactions
+            // Interactions if mouse/touch is active
             if (mouse.x !== undefined && mouse.y !== undefined) {
+                // Repel particles by adding to velocity (for damped, smooth response)
                 particles.forEach((p) => {
                     const dx = p.x - mouse.x;
                     const dy = p.y - mouse.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (dist < REPEL_DISTANCE && dist > 0) {
+                    if (dist < REPEL_DISTANCE && dist > 0) { // Avoid div by zero
                         const angle = Math.atan2(dy, dx);
                         const force = (1 - dist / REPEL_DISTANCE) * REPEL_STRENGTH;
                         p.vx += Math.cos(angle) * force;
@@ -372,37 +198,19 @@
                     }
                 });
 
-                // Enhanced mouse connections with glow
+                // Temporary connections to cursor (with gradual opacity based on distance)
                 particles.forEach((p) => {
                     const dx = p.x - mouse.x;
                     const dy = p.y - mouse.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
                     if (dist < MOUSE_CONNECTION_DISTANCE) {
-                        const opacity = (1 - dist / MOUSE_CONNECTION_DISTANCE) * 0.9;
-                        
-                        ctx.save();
-                        ctx.globalAlpha = opacity;
-                        
-                        // Glow effect for mouse connections
-                        ctx.strokeStyle = `rgba(100, 200, 255, ${opacity * 0.4})`;
-                        ctx.lineWidth = 3;
-                        ctx.shadowColor = 'rgba(173, 216, 230, 0.8)';
-                        ctx.shadowBlur = 10;
+                        const opacity = (1 - dist / MOUSE_CONNECTION_DISTANCE) * 0.8;
+                        ctx.strokeStyle = `rgba(173, 216, 230, ${opacity})`;
+                        ctx.lineWidth = LINE_WIDTH;
                         ctx.beginPath();
                         ctx.moveTo(p.x, p.y);
                         ctx.lineTo(mouse.x, mouse.y);
                         ctx.stroke();
-                        
-                        // Core line
-                        ctx.shadowBlur = 0;
-                        ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
-                        ctx.lineWidth = 1.5;
-                        ctx.beginPath();
-                        ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(mouse.x, mouse.y);
-                        ctx.stroke();
-                        
-                        ctx.restore();
                     }
                 });
             }
