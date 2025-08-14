@@ -57,11 +57,11 @@
         const BOKEH_SPEED = 0.05; // Very slow for ambient feel
 
         // Variables for controlling particle density in specific areas
-        const BASE_DENSITY = 0;
+        const BASE_DENSITY = .01;
         const FOCUS_AREAS = [
-            {centerX: 0.0, centerY: 1.0, radius: 0.2, densityMultiplier: 4},
-            {centerX: 0.5, centerY: 0.5, radius: 0.2, densityMultiplier: 4},
-            {centerX: 1.0, centerY: 0.0, radius: 0.2, densityMultiplier: 4}
+            {centerX: 0.25, centerY: 0.75, radius: 0.8, densityMultiplier: 3},
+            {centerX: 0.5, centerY: 0.5, radius: 3, densityMultiplier: 5},
+            {centerX: 1.0, centerY: 0.0, radius: 0.5, densityMultiplier: 4}
         ]; // Example for higher density along diagonal from bottom left to top right; adjust or add more regions as needed
         const MAX_DENSITY_ESTIMATE = BASE_DENSITY + FOCUS_AREAS.reduce((sum, area) => sum + area.densityMultiplier, 0);
 
