@@ -38,12 +38,12 @@
         // Customizable variables for control over texture, numbers, and effects
         const NUM_PARTICLES = 150; // Number of particles (dots/droplets); increase for denser web
         const PARTICLE_SIZE_MIN = 1; // Min particle size
-        const PARTICLE_SIZE_MAX = 6; // 3 Max particle size for natural variation
-        const PARTICLE_SPEED = 0.1; // Initial subtle movement speed (lower for less drift)
-        const CONNECTION_DISTANCE = 150; // Max distance for particle connections (spider web strings)
-        const MOUSE_CONNECTION_DISTANCE = 200; // Max distance for connections to cursor
+        const PARTICLE_SIZE_MAX = 4; // 3 Max particle size for natural variation
+        const PARTICLE_SPEED = 0.2; // 0.1 Initial subtle movement speed (lower for less drift)
+        const CONNECTION_DISTANCE = 100; // Max distance for particle connections (spider web strings)
+        const MOUSE_CONNECTION_DISTANCE = 200; // 150 Max distance for connections to cursor
         const REPEL_DISTANCE = 150; // Radius for repelling effect
-        const REPEL_STRENGTH = 1.0; // Strength of repel (adjust for subtlety)
+        const REPEL_STRENGTH = 2.0; // 1.0 Strength of repel (adjust for subtlety)
         const GLOW_BLUR = 15; // Glow intensity for water droplet and light effect
         const LINE_WIDTH = 0.8; // Thin string-like lines for web texture
         const SPRING_STRENGTH = 0.005; // Strength of restoring force to original position (subtle)
@@ -53,11 +53,11 @@
         const NUM_BOKEH = 30; // Fewer for less disconnection
         const BOKEH_SIZE_MIN = 3;
         const BOKEH_SIZE_MAX = 20; //10
-        const BOKEH_OPACITY = 0.15; // Lower opacity for subtle integration
+        const BOKEH_OPACITY = 0.08; // 0.15 Lower opacity for subtle integration
         const BOKEH_SPEED = 0.05; // Very slow for ambient feel
 
         // Variables for controlling particle density in specific areas 000000000000000       000000
-        const BASE_DENSITY = 0.01;
+        const BASE_DENSITY = 0.005;
         const FOCUS_AREAS = [
             {centerX: 0.25, centerY: 0.95, radius: 0.3, densityMultiplier: 2}, //bottom left
             {centerX: 0.35, centerY: 0.85, radius: 0.3, densityMultiplier: 1},
@@ -92,7 +92,7 @@
                     : Math.random() * (PARTICLE_SIZE_MAX - PARTICLE_SIZE_MIN) + PARTICLE_SIZE_MIN;
                 this.opacity = isBokeh 
                     ? BOKEH_OPACITY * (0.7 + Math.random() * 0.3) // Varied opacity for bokeh
-                    : 0.8 + Math.random() * 0.2; // Slight variation for natural feel
+                    : 0.8 + Math.random() * 0.5; // 0.2 Slight variation for natural feel
                 this.isBokeh = isBokeh;
             }
 
@@ -125,7 +125,7 @@
                 ctx.shadowColor = 'rgba(173, 216, 230, 0.8)'; // Glow color for light/water droplet effect
                 ctx.shadowBlur = this.isBokeh ? GLOW_BLUR * 2 : GLOW_BLUR; // Stronger blur for bokeh atmosphere
                 ctx.fill();
-                ctx.shadowBlur = 0; // Reset to avoid affecting lines
+                ctx.shadowBlur = 0.5; // 0 Reset to avoid affecting lines
             }
         }
 
