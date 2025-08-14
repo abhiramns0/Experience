@@ -9,7 +9,7 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background-color: radial-gradient(1200px 800px at 70% 30%, #0a2a44, #061826 60%, #031019 100%);/*#001f3f; /* Dark blue background fallback */
+            background-color: #001f3f; /* Dark blue background fallback */
         }
         canvas {
             position: fixed;
@@ -149,7 +149,7 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            ctx.fillStyle = radial-gradient(1200px 800px at 70% 30%, #0a2a44, #061826 60%, #031019 100%) //'#001f3f'; // Dark blue background
+            ctx.fillStyle = radial-gradient('#001f3f'); //1200px 800px at 70% 30%, #0a2a44, #061826 60%, #031019 100% // Dark blue background
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Update and draw bokeh for atmosphere first (background layer)
