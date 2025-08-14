@@ -1,267 +1,372 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio Homepage</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background-color: #000a1a; /* Darker blue background fallback */
-        }
-        canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: -1; /* Behind content */
-        }
-        /* Add your other CSS for portfolio content here */
-        .content {
-            position: relative;
-            z-index: 1;
-            color: white;
-            text-align: center;
-            padding: 20%;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Portfolio Homepage</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000214; /* fallback */
+    }
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+    }
+    .content {
+      position: relative;
+      z-index: 1;
+      color: white;
+      text-align: center;
+      padding: 20%;
+      font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+  </style>
 </head>
 <body>
-    <canvas id="bg"></canvas>
-    <div class="content">
-        <h1>Welcome to My Portfolio</h1>
-        <p>Designer showcasing futuristic tech vibes.</p>
-    </div>
+  <canvas id="bg"></canvas>
 
-    <script>
-        // Customizable variables for control over texture, numbers, and effects
-        const NUM_PARTICLES = 150; // Number of particles (dots/droplets); increase for denser web
-        const PARTICLE_SIZE_MIN = 1; // Min particle size
-        const PARTICLE_SIZE_MAX = 3; // Max particle size for natural variation
-        const PARTICLE_SPEED = 0.1; // Initial subtle movement speed (lower for less drift)
-        const CONNECTION_DISTANCE = 150; // Max distance for particle connections (spider web strings)
-        const MOUSE_CONNECTION_DISTANCE = 200; // Max distance for connections to cursor
-        const REPEL_DISTANCE = 150; // Radius for repelling effect
-        const REPEL_STRENGTH = 1.0; // Strength of repel (adjust for subtlety)
-        const GLOW_BLUR = 15; // Glow intensity for water droplet and light effect
-        const LINE_WIDTH = 0.8; // Thin string-like lines for web texture
-        const SPRING_STRENGTH = 0.005; // Strength of restoring force to original position (subtle)
-        const DAMPING = 0.95; // Damping factor for smooth, natural motion
+  <div class="content">
+    <h1>Welcome to My Portfolio</h1>
+    <p>Designer showcasing futuristic tech vibes.</p>
+  </div>
 
-        // For atmosphere: add background bokeh particles (adjusted to be smaller and more integrated)
-        const NUM_BOKEH = 30; // Fewer for less disconnection
-        const BOKEH_SIZE_MIN = 3;
-        const BOKEH_SIZE_MAX = 10;
-        const BOKEH_OPACITY = 0.15; // Lower opacity for subtle integration
-        const BOKEH_SPEED = 0.05; // Very slow for ambient feel
+  <script>
+    /* =========================
+       CONFIG: Visual + Physics
+       ========================= */
+    // Particles
+    const NUM_PARTICLES = 150;
+    const PARTICLE_SIZE_MIN = 1;
+    const PARTICLE_SIZE_MAX = 3;
+    const PARTICLE_SPEED = 0.1;
+    const CONNECTION_DISTANCE = 150;
+    const MOUSE_CONNECTION_DISTANCE = 200;
+    const REPEL_DISTANCE = 150;
+    const REPEL_STRENGTH = 1.0;
+    const GLOW_BLUR = 14;
+    const LINE_WIDTH = 0.8;
+    const SPRING_STRENGTH = 0.005;
+    const DAMPING = 0.95;
 
-        // Variables for controlling particle density in specific areas
-        const BASE_DENSITY = 1;
-        const FOCUS_AREAS = [
-            {centerX: 0.0, centerY: 1.0, radius: 0.2, densityMultiplier: 4},
-            {centerX: 0.5, centerY: 0.5, radius: 0.2, densityMultiplier: 4},
-            {centerX: 1.0, centerY: 0.0, radius: 0.2, densityMultiplier: 4}
-        ]; // Example for higher density along diagonal from bottom left to top right; adjust or add more regions as needed
-        const MAX_DENSITY_ESTIMATE = BASE_DENSITY + FOCUS_AREAS.reduce((sum, area) => sum + area.densityMultiplier, 0);
+    // Bokeh (ambient blobs)
+    const NUM_BOKEH = 30;
+    const BOKEH_SIZE_MIN = 8;   // bigger for presence
+    const BOKEH_SIZE_MAX = 38;
+    const BOKEH_OPACITY_MIN = 0.06;
+    const BOKEH_OPACITY_MAX = 0.22;
+    const BOKEH_SPEED = 0.04;   // very slow drift
+    const BOKEH_BLUR_MIN = 6;   // px
+    const BOKEH_BLUR_MAX = 22;  // px
 
-        const canvas = document.getElementById('bg');
-        const ctx = canvas.getContext('2d');
+    // Colors
+    const BASE_DARK = '#000214';        // outer edge
+    const MID_DARK  = '#00112a';        // mid ring
+    const CENTER_LIGHT = '#042b53';     // center tint (still dark overall)
+    const DOT_COLOR = '173, 216, 230';  // light-blue-ish (RGB)
 
-        // Handle resize for full-screen coverage
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            initParticles();
+    // Gradient center (as % of canvas) & radius factor
+    let GRADIENT_CX = 0.5; // center x (0..1)
+    let GRADIENT_CY = 0.4; // center y (0..1) slightly above center
+    let GRADIENT_RADIUS = 1.05; // relative to max(canvas.width, canvas.height)
+
+    /* =========================
+       CONFIG: Density Regions
+       =========================
+       Weighted spawn regions so you can steer where particles are denser.
+
+       Types supported:
+       - type: 'rect'  with {x, y, w, h} in normalized units (0..1), weight > 0
+       - type: 'band'  (diagonal band) with {from:[x,y], to:[x,y], radius: px|rel, weight}
+                       radius can be:
+                         - number (pixels), or
+                         - { rel: number } -> relative to min(canvas dim)
+    */
+    const BASE_DENSITY = 0.15; // baseline acceptance probability (0..1)
+
+    const DENSITY_REGIONS = [
+      // Default diagonal band: bottom-left → top-right
+      {
+        type: 'band',
+        from: [0.0, 1.0],
+        to:   [1.0, 0.0],
+        radius: { rel: 0.08 }, // ~8% of the min dimension
+        weight: 0.75            // add to acceptance probability
+      },
+      // Example extra rectangle hotspot (uncomment to use):
+      // {
+      //   type: 'rect',
+      //   x: 0.1, y: 0.65, w: 0.25, h: 0.25,
+      //   weight: 0.5
+      // }
+    ];
+
+    // Utility to resolve a radius which may be px or relative
+    function resolveRadius(rad, w, h) {
+      if (typeof rad === 'number') return rad;
+      if (rad && typeof rad.rel === 'number') {
+        return Math.min(w, h) * rad.rel;
+      }
+      return 0;
+    }
+
+    // Compute density weight at a pixel coordinate
+    function densityAt(x, y, w, h) {
+      let p = BASE_DENSITY; // start from baseline
+      for (const r of DENSITY_REGIONS) {
+        if (r.type === 'rect') {
+          const rx = r.x * w, ry = r.y * h, rw = r.w * w, rh = r.h * h;
+          if (x >= rx && x <= rx + rw && y >= ry && y <= ry + rh) {
+            p += r.weight;
+          }
+        } else if (r.type === 'band') {
+          const x1 = r.from[0] * w, y1 = r.from[1] * h;
+          const x2 = r.to[0]   * w, y2 = r.to[1]   * h;
+          const rad = resolveRadius(r.radius, w, h);
+          const dist = pointToSegmentDistance(x, y, x1, y1, x2, y2);
+          if (dist <= rad) {
+            // fade weight by proximity to band center
+            const t = 1 - (dist / rad);
+            p += r.weight * t;
+          }
         }
-        window.addEventListener('resize', resizeCanvas);
+      }
+      // clamp 0..1 for acceptance
+      return Math.max(0, Math.min(1, p));
+    }
 
-        class Particle {
-            constructor(x, y, isBokeh = false) {
-                this.x = x;
-                this.y = y;
-                this.homeX = this.x; // Original position to return to
-                this.homeY = this.y;
-                this.vx = (Math.random() - 0.5) * (isBokeh ? BOKEH_SPEED : PARTICLE_SPEED);
-                this.vy = (Math.random() - 0.5) * (isBokeh ? BOKEH_SPEED : PARTICLE_SPEED);
-                this.size = isBokeh 
-                    ? Math.random() * (BOKEH_SIZE_MAX - BOKEH_SIZE_MIN) + BOKEH_SIZE_MIN 
-                    : Math.random() * (PARTICLE_SIZE_MAX - PARTICLE_SIZE_MIN) + PARTICLE_SIZE_MIN;
-                this.opacity = isBokeh 
-                    ? BOKEH_OPACITY * (0.7 + Math.random() * 0.3) // Varied opacity for bokeh
-                    : 0.8 + Math.random() * 0.2; // Slight variation for natural feel
-                this.isBokeh = isBokeh;
-            }
+    function pointToSegmentDistance(px, py, x1, y1, x2, y2) {
+      const dx = x2 - x1, dy = y2 - y1;
+      const len2 = dx*dx + dy*dy || 1e-6;
+      let t = ((px - x1) * dx + (py - y1) * dy) / len2;
+      t = Math.max(0, Math.min(1, t));
+      const sx = x1 + t * dx, sy = y1 + t * dy;
+      const ddx = px - sx, ddy = py - sy;
+      return Math.hypot(ddx, ddy);
+    }
 
-            update() {
-                // Spring force to return to home position
-                const springX = (this.homeX - this.x) * SPRING_STRENGTH;
-                const springY = (this.homeY - this.y) * SPRING_STRENGTH;
-                this.vx += springX;
-                this.vy += springY;
+    // Rejection sampling that honors density regions
+    function sampleWeightedPosition(w, h, maxTries = 500) {
+      for (let i = 0; i < maxTries; i++) {
+        const x = Math.random() * w;
+        const y = Math.random() * h;
+        const accept = Math.random() < densityAt(x, y, w, h);
+        if (accept) return { x, y };
+      }
+      // Fallback (uniform) if we somehow failed
+      return { x: Math.random() * w, y: Math.random() * h };
+    }
 
-                // Damping for smooth, damped oscillation
-                this.vx *= DAMPING;
-                this.vy *= DAMPING;
+    /* =========================
+       Canvas + Resize
+       ========================= */
+    const canvas = document.getElementById('bg');
+    const ctx = canvas.getContext('2d');
 
-                // Update position
-                this.x += this.vx;
-                this.y += this.vy;
+    function resizeCanvas() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2); // cap for perf
+      const { innerWidth: w, innerHeight: h } = window;
+      canvas.style.width  = w + 'px';
+      canvas.style.height = h + 'px';
+      canvas.width  = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // reset scale for drawing in CSS pixels
+      // Re-home particles to preserve layout after resize
+      particles.forEach(p => {
+        p.homeX = Math.random() * w;
+        p.homeY = Math.random() * h;
+      });
+      bokehParticles.forEach(p => {
+        p.homeX = Math.random() * w;
+        p.homeY = Math.random() * h;
+      });
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
 
-                // Bounce off edges to stay on screen
-                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
-            }
+    /* =========================
+       Particles
+       ========================= */
+    class Particle {
+      constructor(isBokeh = false) {
+        const { innerWidth: w, innerHeight: h } = window;
+        const pos = sampleWeightedPosition(w, h);
 
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = this.isBokeh 
-                    ? `rgba(173, 216, 230, ${this.opacity})` 
-                    : `rgba(173, 216, 230, ${this.opacity})`; // Light blue with opacity
-                ctx.shadowColor = 'rgba(173, 216, 230, 0.8)'; // Glow color for light/water droplet effect
-                ctx.shadowBlur = this.isBokeh ? GLOW_BLUR * 2 : GLOW_BLUR; // Stronger blur for bokeh atmosphere
-                ctx.fill();
-                ctx.shadowBlur = 0; // Reset to avoid affecting lines
-            }
+        this.x = pos.x;
+        this.y = pos.y;
+        this.homeX = this.x;
+        this.homeY = this.y;
+
+        this.isBokeh = isBokeh;
+
+        const spd = isBokeh ? BOKEH_SPEED : PARTICLE_SPEED;
+        this.vx = (Math.random() - 0.5) * spd;
+        this.vy = (Math.random() - 0.5) * spd;
+
+        if (isBokeh) {
+          this.size = randBetween(BOKEH_SIZE_MIN, BOKEH_SIZE_MAX);
+          this.opacity = randBetween(BOKEH_OPACITY_MIN, BOKEH_OPACITY_MAX);
+          this.blur = randBetween(BOKEH_BLUR_MIN, BOKEH_BLUR_MAX);
+        } else {
+          this.size = randBetween(PARTICLE_SIZE_MIN, PARTICLE_SIZE_MAX);
+          this.opacity = 0.8 + Math.random() * 0.2;
+          this.blur = GLOW_BLUR;
         }
+      }
 
-        let particles = [];
-        let bokehParticles = [];
+      update() {
+        const springX = (this.homeX - this.x) * SPRING_STRENGTH;
+        const springY = (this.homeY - this.y) * SPRING_STRENGTH;
+        this.vx += springX;
+        this.vy += springY;
 
-        function generateParticles(array, num, isBokeh) {
-            array.length = 0; // Clear existing
-            let attempts = 0;
-            const maxAttempts = num * 100; // Safety to prevent infinite loop if misconfigured
-            while (array.length < num && attempts < maxAttempts) {
-                attempts++;
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * canvas.height;
-                let density = BASE_DENSITY;
-                FOCUS_AREAS.forEach(focus => {
-                    const fx = focus.centerX * canvas.width;
-                    const fy = focus.centerY * canvas.height;
-                    const fr = focus.radius * Math.min(canvas.width, canvas.height);
-                    const dx = x - fx;
-                    const dy = y - fy;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < fr) {
-                        density += focus.densityMultiplier * (1 - dist / fr); // Linear falloff for smoother density transition
-                    }
-                });
-                if (Math.random() < density / MAX_DENSITY_ESTIMATE) {
-                    array.push(new Particle(x, y, isBokeh));
-                }
-            }
+        this.vx *= DAMPING;
+        this.vy *= DAMPING;
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        if (this.x < 0 || this.x > w) this.vx *= -1;
+        if (this.y < 0 || this.y > h) this.vy *= -1;
+      }
+
+      draw() {
+        if (this.isBokeh) {
+          // Heavier blur for bokeh + subtle glow
+          ctx.save();
+          ctx.filter = `blur(${this.blur}px)`;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${DOT_COLOR}, ${this.opacity})`;
+          ctx.shadowColor = `rgba(${DOT_COLOR}, ${Math.min(0.6, this.opacity + 0.1)})`;
+          ctx.shadowBlur = this.blur * 0.6;
+          ctx.fill();
+          ctx.restore();
+        } else {
+          // Crisp dot with glow
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${DOT_COLOR}, ${this.opacity})`;
+          ctx.shadowColor = `rgba(${DOT_COLOR}, 0.8)`;
+          ctx.shadowBlur = this.blur;
+          ctx.fill();
+          ctx.restore();
         }
+      }
+    }
 
-        function initParticles() {
-            generateParticles(particles, NUM_PARTICLES, false);
-            generateParticles(bokehParticles, NUM_BOKEH, true);
+    function randBetween(a, b) { return a + Math.random() * (b - a); }
+
+    const particles = Array.from({ length: NUM_PARTICLES }, () => new Particle(false));
+    const bokehParticles = Array.from({ length: NUM_BOKEH }, () => new Particle(true));
+
+    /* =========================
+       Input
+       ========================= */
+    let mouse = { x: undefined, y: undefined };
+
+    window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+    window.addEventListener('mouseleave', () => { mouse.x = mouse.y = undefined; });
+
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches.length) {
+        mouse.x = e.touches[0].clientX;
+        mouse.y = e.touches[0].clientY;
+      }
+    }, { passive: true });
+    window.addEventListener('touchend', () => { mouse.x = mouse.y = undefined; });
+
+    /* =========================
+       Render
+       ========================= */
+    function drawRadialGradient() {
+      const w = window.innerWidth, h = window.innerHeight;
+      const cx = w * GRADIENT_CX, cy = h * GRADIENT_CY;
+      const maxR = Math.max(w, h) * GRADIENT_RADIUS;
+
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
+      grad.addColorStop(0.0, CENTER_LIGHT);
+      grad.addColorStop(0.55, MID_DARK);
+      grad.addColorStop(1.0, BASE_DARK);
+
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Dark radial gradient background
+      drawRadialGradient();
+
+      // Background bokeh first
+      for (const b of bokehParticles) {
+        b.update();
+        b.draw();
+      }
+
+      // Web connections (light lines)
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const a = particles[i], b = particles[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < CONNECTION_DISTANCE) {
+            const opacity = (1 - dist / CONNECTION_DISTANCE) * 0.5;
+            ctx.strokeStyle = `rgba(${DOT_COLOR}, ${opacity})`;
+            ctx.lineWidth = LINE_WIDTH;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
         }
+      }
 
-        resizeCanvas(); // Initial setup
+      // Foreground particles
+      for (const p of particles) {
+        p.update();
+        p.draw();
+      }
 
-        let mouse = { x: undefined, y: undefined };
-
-        // Mouse and touch events
-        window.addEventListener('mousemove', (e) => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-        });
-        window.addEventListener('touchmove', (e) => {
-            if (e.touches.length > 0) {
-                mouse.x = e.touches[0].clientX;
-                mouse.y = e.touches[0].clientY;
-            }
-        });
-        // Reset mouse on leave/out
-        window.addEventListener('mouseleave', () => {
-            mouse.x = undefined;
-            mouse.y = undefined;
-        });
-        window.addEventListener('touchend', () => {
-            mouse.x = undefined;
-            mouse.y = undefined;
-        });
-
-        function animate() {
-            requestAnimationFrame(animate);
-            // Radial gradient background with light center, overall darker
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const maxRadius = Math.hypot(centerX, centerY);
-            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxRadius);
-            gradient.addColorStop(0, '#001f3f'); // Light center (relative to darker outer)
-            gradient.addColorStop(1, '#000a1a'); // Darker outer for overall darker feel
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Update and draw bokeh for atmosphere first (background layer)
-            bokehParticles.forEach((p) => {
-                p.update();
-                p.draw();
-            });
-
-            // Draw connections between particles (spider web effect)
-            for (let i = 0; i < particles.length; i++) {
-                for (let j = i + 1; j < particles.length; j++) {
-                    const dx = particles[i].x - particles[j].x;
-                    const dy = particles[i].y - particles[j].y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < CONNECTION_DISTANCE) {
-                        // Opacity increases as particles get closer (natural forming effect)
-                        const opacity = (1 - dist / CONNECTION_DISTANCE) * 0.5;
-                        ctx.strokeStyle = `rgba(173, 216, 230, ${opacity})`;
-                        ctx.lineWidth = LINE_WIDTH;
-                        ctx.beginPath();
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.stroke();
-                    }
-                }
-            }
-
-            // Update and draw particles (foreground droplets with glow)
-            particles.forEach((p) => {
-                p.update();
-                p.draw();
-            });
-
-            // Interactions if mouse/touch is active
-            if (mouse.x !== undefined && mouse.y !== undefined) {
-                // Repel particles by adding to velocity (for damped, smooth response)
-                particles.forEach((p) => {
-                    const dx = p.x - mouse.x;
-                    const dy = p.y - mouse.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < REPEL_DISTANCE && dist > 0) { // Avoid div by zero
-                        const angle = Math.atan2(dy, dx);
-                        const force = (1 - dist / REPEL_DISTANCE) * REPEL_STRENGTH;
-                        p.vx += Math.cos(angle) * force;
-                        p.vy += Math.sin(angle) * force;
-                    }
-                });
-
-                // Temporary connections to cursor (with gradual opacity based on distance)
-                particles.forEach((p) => {
-                    const dx = p.x - mouse.x;
-                    const dy = p.y - mouse.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < MOUSE_CONNECTION_DISTANCE) {
-                        const opacity = (1 - dist / MOUSE_CONNECTION_DISTANCE) * 0.8;
-                        ctx.strokeStyle = `rgba(173, 216, 230, ${opacity})`;
-                        ctx.lineWidth = LINE_WIDTH;
-                        ctx.beginPath();
-                        ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(mouse.x, mouse.y);
-                        ctx.stroke();
-                    }
-                });
-            }
+      // Interactions
+      if (mouse.x !== undefined && mouse.y !== undefined) {
+        for (const p of particles) {
+          const dx = p.x - mouse.x, dy = p.y - mouse.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < REPEL_DISTANCE && dist > 0) {
+            const force = (1 - dist / REPEL_DISTANCE) * REPEL_STRENGTH;
+            const ang = Math.atan2(dy, dx);
+            p.vx += Math.cos(ang) * force;
+            p.vy += Math.sin(ang) * force;
+          }
         }
+        for (const p of particles) {
+          const dx = p.x - mouse.x, dy = p.y - mouse.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < MOUSE_CONNECTION_DISTANCE) {
+            const opacity = (1 - dist / MOUSE_CONNECTION_DISTANCE) * 0.8;
+            ctx.strokeStyle = `rgba(${DOT_COLOR}, ${opacity})`;
+            ctx.lineWidth = LINE_WIDTH;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
 
-        animate();
-    </script>
+    animate();
+  </script>
 </body>
 </html>
