@@ -9,7 +9,7 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background-color: #001f3f; /* Dark blue background fallback */
+            background-color: #000a1a; /* Darker blue background fallback */
         }
         canvas {
             position: fixed;
@@ -56,6 +56,15 @@
         const BOKEH_OPACITY = 0.15; // Lower opacity for subtle integration
         const BOKEH_SPEED = 0.05; // Very slow for ambient feel
 
+        // Variables for controlling particle density in specific areas
+        const BASE_DENSITY = 1;
+        const FOCUS_AREAS = [
+            {centerX: 0.0, centerY: 1.0, radius: 0.2, densityMultiplier: 4},
+            {centerX: 0.5, centerY: 0.5, radius: 0.2, densityMultiplier: 4},
+            {centerX: 1.0, centerY: 0.0, radius: 0.2, densityMultiplier: 4}
+        ]; // Example for higher density along diagonal from bottom left to top right; adjust or add more regions as needed
+        const MAX_DENSITY_ESTIMATE = BASE_DENSITY + FOCUS_AREAS.reduce((sum, area) => sum + area.densityMultiplier, 0);
+
         const canvas = document.getElementById('bg');
         const ctx = canvas.getContext('2d');
 
@@ -63,14 +72,14 @@
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            initParticles();
         }
-        resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
         class Particle {
-            constructor(isBokeh = false) {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
+            constructor(x, y, isBokeh = false) {
+                this.x = x;
+                this.y = y;
                 this.homeX = this.x; // Original position to return to
                 this.homeY = this.y;
                 this.vx = (Math.random() - 0.5) * (isBokeh ? BOKEH_SPEED : PARTICLE_SPEED);
@@ -78,7 +87,9 @@
                 this.size = isBokeh 
                     ? Math.random() * (BOKEH_SIZE_MAX - BOKEH_SIZE_MIN) + BOKEH_SIZE_MIN 
                     : Math.random() * (PARTICLE_SIZE_MAX - PARTICLE_SIZE_MIN) + PARTICLE_SIZE_MIN;
-                this.opacity = isBokeh ? BOKEH_OPACITY : 0.8 + Math.random() * 0.2; // Slight variation for natural feel
+                this.opacity = isBokeh 
+                    ? BOKEH_OPACITY * (0.7 + Math.random() * 0.3) // Varied opacity for bokeh
+                    : 0.8 + Math.random() * 0.2; // Slight variation for natural feel
                 this.isBokeh = isBokeh;
             }
 
@@ -115,14 +126,41 @@
             }
         }
 
-        const particles = [];
-        for (let i = 0; i < NUM_PARTICLES; i++) {
-            particles.push(new Particle());
+        let particles = [];
+        let bokehParticles = [];
+
+        function generateParticles(array, num, isBokeh) {
+            array.length = 0; // Clear existing
+            let attempts = 0;
+            const maxAttempts = num * 100; // Safety to prevent infinite loop if misconfigured
+            while (array.length < num && attempts < maxAttempts) {
+                attempts++;
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                let density = BASE_DENSITY;
+                FOCUS_AREAS.forEach(focus => {
+                    const fx = focus.centerX * canvas.width;
+                    const fy = focus.centerY * canvas.height;
+                    const fr = focus.radius * Math.min(canvas.width, canvas.height);
+                    const dx = x - fx;
+                    const dy = y - fy;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < fr) {
+                        density += focus.densityMultiplier * (1 - dist / fr); // Linear falloff for smoother density transition
+                    }
+                });
+                if (Math.random() < density / MAX_DENSITY_ESTIMATE) {
+                    array.push(new Particle(x, y, isBokeh));
+                }
+            }
         }
-        const bokehParticles = [];
-        for (let i = 0; i < NUM_BOKEH; i++) {
-            bokehParticles.push(new Particle(true));
+
+        function initParticles() {
+            generateParticles(particles, NUM_PARTICLES, false);
+            generateParticles(bokehParticles, NUM_BOKEH, true);
         }
+
+        resizeCanvas(); // Initial setup
 
         let mouse = { x: undefined, y: undefined };
 
@@ -149,7 +187,14 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            ctx.fillStyle = '#001f3f'; // Dark blue background
+            // Radial gradient background with light center, overall darker
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const maxRadius = Math.hypot(centerX, centerY);
+            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxRadius);
+            gradient.addColorStop(0, '#001f3f'); // Light center (relative to darker outer)
+            gradient.addColorStop(1, '#000a1a'); // Darker outer for overall darker feel
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Update and draw bokeh for atmosphere first (background layer)
