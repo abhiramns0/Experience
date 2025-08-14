@@ -38,7 +38,7 @@
         // Customizable variables for control over texture, numbers, and effects
         const NUM_PARTICLES = 150; // Number of particles (dots/droplets); increase for denser web
         const PARTICLE_SIZE_MIN = 1; // Min particle size
-        const PARTICLE_SIZE_MAX = 3; // 3 Max particle size for natural variation
+        const PARTICLE_SIZE_MAX = 4; // 3 Max particle size for natural variation
         const PARTICLE_SPEED = 0.1; // Initial subtle movement speed (lower for less drift)
         const CONNECTION_DISTANCE = 90; // 100? Max distance for particle connections (spider web strings)
         const MOUSE_CONNECTION_DISTANCE = 150; // Max distance for connections to cursor
@@ -50,21 +50,21 @@
         const DAMPING = 0.95; // Damping factor for smooth, natural motion
 
         // For atmosphere: add background bokeh particles (adjusted to be smaller and more integrated)
-        const NUM_BOKEH = 30; // Fewer for less disconnection
+        const NUM_BOKEH = 50; // 30 Fewer for less disconnection
         const BOKEH_SIZE_MIN = 3;
         const BOKEH_SIZE_MAX = 15; //10
         const BOKEH_OPACITY = 0.04; // 0.15 Lower opacity for subtle integration
         const BOKEH_SPEED = 0.05; // Very slow for ambient feel
 
         // Variables for controlling particle density in specific areas 000000000000000       000000
-        const BASE_DENSITY = 0.001;
+        const BASE_DENSITY = 0.005;
         const FOCUS_AREAS = [
-            {centerX: 0.25, centerY: 0.95, radius: 0.2, densityMultiplier: 1}, //bottom left
-            {centerX: 0.35, centerY: 0.85, radius: 0.2, densityMultiplier: 0.5},
-            {centerX: 0.4, centerY: 0.5, radius: 0.2, densityMultiplier: 1.5}, // centre
-            {centerX: 0.35, centerY: 0.45, radius: 0.3, densityMultiplier: 0.5}, // centre
+            {centerX: 0.15, centerY: 0.95, radius: 0.3, densityMultiplier: 1}, //bottom left
+            {centerX: 0.35, centerY: 0.85, radius: 0.3, densityMultiplier: 0.5},
+            {centerX: 0.4, centerY: 0.5, radius: 0.3, densityMultiplier: 1}, // centre
+            {centerX: 0.65, centerY: 0.55, radius: 0.4, densityMultiplier: 0.5}, // centre
             {centerX: 0.75, centerY: 0.35, radius: 0.2, densityMultiplier: 0.5},
-            {centerX: 1.0, centerY: 0.25, radius: 0.2, densityMultiplier: 1} //topright
+            {centerX: 1.0, centerY: 0.15, radius: 0.3, densityMultiplier: 1} //topright
         ]; // Example for higher density along diagonal from bottom left to top right; adjust or add more regions as needed
         const MAX_DENSITY_ESTIMATE = BASE_DENSITY + FOCUS_AREAS.reduce((sum, area) => sum + area.densityMultiplier, 0);
 
