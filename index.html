@@ -45,9 +45,16 @@
         const REPEL_DISTANCE = 150; // Radius for repelling effect
         const REPEL_STRENGTH = 1.0; // Strength of repel (adjust for subtlety)
         const GLOW_BLUR = 15; // Glow intensity for water droplet and light effect
-        const LINE_WIDTH = 0.8; // Thin string-like lines for web texture
+        const LINE_WIDTH = 1.2; // Increased thickness for string-like texture
         const SPRING_STRENGTH = 0.005; // Strength of restoring force to original position (subtle)
         const DAMPING = 0.95; // Damping factor for smooth, natural motion
+        const FADE_FACTOR = 0.05; // Lerp factor for slow connection formation (smaller = slower fade in/out)
+        const LINE_GLOW_BLUR = 5; // Subtle glow for lines to add atmospheric/dreamy effect and texture
+        const LINE_GLOW_OPACITY = 0.5; // Glow opacity for lines
+
+        // Particle generation bias for concentration control (options: 'uniform', 'diagonal_ascending')
+        const GENERATION_BIAS = 'diagonal_ascending'; // Set to 'uniform' for even distribution
+        const BIAS_SPREAD = 0.2; // Spread factor around the bias line (0-1, higher = more dispersed)
 
         // For atmosphere: add background bokeh particles (adjusted to be smaller and more integrated)
         const NUM_BOKEH = 30; // Fewer for less disconnection
@@ -69,8 +76,20 @@
 
         class Particle {
             constructor(isBokeh = false) {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
+                if (!isBokeh) {
+                    if (GENERATION_BIAS === 'diagonal_ascending') {
+                        this.x = Math.random() * canvas.width;
+                        const normX = this.x / canvas.width;
+                        // Diagonal from bottom-left (higher y) to top-right (lower y), with random spread
+                        this.y = canvas.height * (0.9 - normX * 0.8) + (Math.random() - 0.5) * canvas.height * BIAS_SPREAD;
+                    } else {
+                        this.x = Math.random() * canvas.width;
+                        this.y = Math.random() * canvas.height;
+                    }
+                } else {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                }
                 this.homeX = this.x; // Original position to return to
                 this.homeY = this.y;
                 this.vx = (Math.random() - 0.5) * (isBokeh ? BOKEH_SPEED : PARTICLE_SPEED);
@@ -109,7 +128,7 @@
                     ? `rgba(173, 216, 230, ${this.opacity})` 
                     : `rgba(173, 216, 230, ${this.opacity})`; // Light blue with opacity
                 ctx.shadowColor = 'rgba(173, 216, 230, 0.8)'; // Glow color for light/water droplet effect
-                ctx.shadowBlur = this.isBokeh ? GLOW_BLUR * 2 : GLOW_BLUR; // Stronger blur for bokeh atmosphere
+                ctx.shadowBlur = this.isBokeh ? GLOW_BLUR * 1.5 : GLOW_BLUR; // Slightly reduced for integration, but dreamy
                 ctx.fill();
                 ctx.shadowBlur = 0; // Reset to avoid affecting lines
             }
@@ -123,6 +142,10 @@
         for (let i = 0; i < NUM_BOKEH; i++) {
             bokehParticles.push(new Particle(true));
         }
+
+        // Opacity matrices for slow connection formation
+        const opacityMatrix = Array.from({length: NUM_PARTICLES}, () => Array(NUM_PARTICLES).fill(0));
+        const mouseOpacity = new Array(NUM_PARTICLES).fill(0);
 
         let mouse = { x: undefined, y: undefined };
 
@@ -149,7 +172,12 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            ctx.fillStyle = '#001f3f'; // Dark blue background
+
+            // Background gradient to match reference (diagonal from darker bottom-left to lighter top-right)
+            const gradient = ctx.createLinearGradient(0, canvas.height, canvas.width, 0);
+            gradient.addColorStop(0, '#000033'); // Darker navy blue
+            gradient.addColorStop(1, '#001f5e'); // Lighter deep blue for futuristic vibe
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Update and draw bokeh for atmosphere first (background layer)
@@ -158,16 +186,22 @@
                 p.draw();
             });
 
-            // Draw connections between particles (spider web effect)
-            for (let i = 0; i < particles.length; i++) {
-                for (let j = i + 1; j < particles.length; j++) {
+            // Draw connections between particles (spider web effect) with slow fade and glow texture
+            ctx.shadowColor = `rgba(173, 216, 230, ${LINE_GLOW_OPACITY})`;
+            ctx.shadowBlur = LINE_GLOW_BLUR;
+            for (let i = 0; i < NUM_PARTICLES; i++) {
+                for (let j = i + 1; j < NUM_PARTICLES; j++) {
                     const dx = particles[i].x - particles[j].x;
                     const dy = particles[i].y - particles[j].y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
+                    let targetOpacity = 0;
                     if (dist < CONNECTION_DISTANCE) {
-                        // Opacity increases as particles get closer (natural forming effect)
-                        const opacity = (1 - dist / CONNECTION_DISTANCE) * 0.5;
-                        ctx.strokeStyle = `rgba(173, 216, 230, ${opacity})`;
+                        targetOpacity = (1 - dist / CONNECTION_DISTANCE) * 0.5;
+                    }
+                    // Slow lerp for natural, slow formation
+                    opacityMatrix[i][j] += (targetOpacity - opacityMatrix[i][j]) * FADE_FACTOR;
+                    if (opacityMatrix[i][j] > 0.01) {
+                        ctx.strokeStyle = `rgba(173, 216, 230, ${opacityMatrix[i][j]})`;
                         ctx.lineWidth = LINE_WIDTH;
                         ctx.beginPath();
                         ctx.moveTo(particles[i].x, particles[i].y);
@@ -176,6 +210,7 @@
                     }
                 }
             }
+            ctx.shadowBlur = 0; // Reset glow after lines
 
             // Update and draw particles (foreground droplets with glow)
             particles.forEach((p) => {
@@ -198,14 +233,21 @@
                     }
                 });
 
-                // Temporary connections to cursor (with gradual opacity based on distance)
-                particles.forEach((p) => {
+                // Temporary connections to cursor with slow fade and glow
+                ctx.shadowColor = `rgba(173, 216, 230, ${LINE_GLOW_OPACITY})`;
+                ctx.shadowBlur = LINE_GLOW_BLUR;
+                particles.forEach((p, k) => {
                     const dx = p.x - mouse.x;
                     const dy = p.y - mouse.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
+                    let targetOpacity = 0;
                     if (dist < MOUSE_CONNECTION_DISTANCE) {
-                        const opacity = (1 - dist / MOUSE_CONNECTION_DISTANCE) * 0.8;
-                        ctx.strokeStyle = `rgba(173, 216, 230, ${opacity})`;
+                        targetOpacity = (1 - dist / MOUSE_CONNECTION_DISTANCE) * 0.8;
+                    }
+                    // Slow lerp for natural formation
+                    mouseOpacity[k] += (targetOpacity - mouseOpacity[k]) * FADE_FACTOR;
+                    if (mouseOpacity[k] > 0.01) {
+                        ctx.strokeStyle = `rgba(173, 216, 230, ${mouseOpacity[k]})`;
                         ctx.lineWidth = LINE_WIDTH;
                         ctx.beginPath();
                         ctx.moveTo(p.x, p.y);
@@ -213,6 +255,7 @@
                         ctx.stroke();
                     }
                 });
+                ctx.shadowBlur = 0;
             }
         }
 
