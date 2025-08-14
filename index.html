@@ -36,19 +36,19 @@
 
     <script>
         // Customizable variables for control over texture, numbers, and effects
-        const NUM_PARTICLES = 150; // Number of particles (dots/droplets); increase for denser web
+        const NUM_PARTICLES = 100; // 150 Number of particles (dots/droplets); increase for denser web
         const PARTICLE_SIZE_MIN = 1; // Min particle size
         const PARTICLE_SIZE_MAX = 3; // Max particle size for natural variation
-        const PARTICLE_SPEED = 0.5; // Initial subtle movement speed (lower for less drift)
+        const PARTICLE_SPEED = 1; // 0.5 Initial subtle movement speed (lower for less drift)
         const CONNECTION_DISTANCE = 50; // 150 Max distance for particle connections (spider web strings)
-        const MOUSE_CONNECTION_DISTANCE = 100; // 100 Max distance for connections to cursor
-        const REPEL_DISTANCE = 50; // 150 Radius for repelling effect
-        const REPEL_STRENGTH = 10.0; // 5 Strength of repel (adjust for subtlety)
+        const MOUSE_CONNECTION_DISTANCE = 80; // 100 Max distance for connections to cursor
+        const REPEL_DISTANCE = 100; // 150 Radius for repelling effect
+        const REPEL_STRENGTH = 2.0; // 5 Strength of repel (adjust for subtlety)
         const GLOW_BLUR = 15; // Glow intensity for water droplet and light effect
         const LINE_WIDTH = 1.2; // Increased thickness for string-like texture
-        const SPRING_STRENGTH = 0.5; // 0.005 Strength of restoring force to original position (subtle)
+        const SPRING_STRENGTH = 0.05; // 0.005 Strength of restoring force to original position (subtle)
         const DAMPING = 0.2; // 0.95 Damping factor for smooth, natural motion
-        const FADE_FACTOR = 1; // 0.05 Lerp factor for slow connection formation (smaller = slower fade in/out)
+        const FADE_FACTOR = 5; // 0.05 Lerp factor for slow connection formation (smaller = slower fade in/out)
         const LINE_GLOW_BLUR = 5; // Subtle glow for lines to add atmospheric/dreamy effect and texture
         const LINE_GLOW_OPACITY = 0.5; // Glow opacity for lines
 
