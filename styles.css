@@ -60,7 +60,7 @@
 .navbar a {
     text-decoration: none;
     color: #FFFFFF;
-    font-size: 16px;
+    font-size: 14px;
     font-family: 'Sansation';
     font-weight: 300;
     transition: opacity 0.3s;
@@ -540,8 +540,8 @@ main {
 }
 
 .social-icon {
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     margin-bottom: 8px;
     transition: box-shadow 0.3s ease;
@@ -552,7 +552,7 @@ main {
 }
 
 .social-link span {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 300;
     font-family: 'Sansation';
     color: #FFFFFF;
@@ -568,13 +568,13 @@ main {
 .signature-image {
     display: block;
     margin: 0 auto 15px;
-    width: 200px;
+    width: 180px;
     height: auto;
 }
 
 .copyright {
     font-family: 'Sansation';
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 400;
     color: #FFFFFF;
     display: block;
