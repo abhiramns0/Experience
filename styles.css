@@ -636,13 +636,16 @@ main {
         flex-direction: column !important;
         text-align: center;
         margin-bottom: 80px;
+        position: relative;
     }
     
     .project-left .project-media,
     .project-right .project-media {
         flex: none;
-        margin: 0 0 40px 0;
+        margin: 0 0 20px 0;
         order: -1;
+        z-index: 2;
+        position: relative;
     }
     
     .project-image {
@@ -652,6 +655,11 @@ main {
     
     .project-content {
         max-width: 100%;
+        z-index: 1;
+        position: relative;
+        padding: 30px 40px 40px 40px;
+        border-radius: 20px;
+        margin-top: -20px;
     }
     
     .project-left .project-content {
@@ -659,10 +667,19 @@ main {
     }
     
     .project-bg {
+        position: absolute;
         left: -50px;
         right: -50px;
-        height: auto;
-        min-height: 400px;
+        top: calc(50% + 60px);
+        transform: translateY(-50%);
+        height: 300px;
+        z-index: 0;
+        border-radius: 20px;
+    }
+    
+    .project-btn {
+        margin: 40px auto 0 auto;
+        align-self: center;
     }
     
     .about-main {
@@ -789,11 +806,37 @@ main {
     
     .project-row {
         margin-bottom: 60px;
+        flex-direction: column !important;
+        text-align: center;
+        position: relative;
+    }
+    
+    .project-left .project-media,
+    .project-right .project-media {
+        flex: none;
+        margin: 0 0 15px 0;
+        order: -1;
+        z-index: 2;
+        position: relative;
     }
     
     .project-image {
         max-width: 100%;
         border-radius: 15px;
+    }
+    
+    .project-content {
+        max-width: 100%;
+        z-index: 1;
+        position: relative;
+        padding: 25px 30px 35px 30px;
+        border-radius: 15px;
+        margin-top: -15px;
+        align-items: center;
+    }
+    
+    .project-left .project-content {
+        margin-left: 0;
     }
     
     .project-title {
@@ -808,18 +851,22 @@ main {
     }
     
     .project-btn {
-        margin-top: 30px;
+        margin: 25px auto 0 auto;
         width: 100px;
         height: 45px;
         font-size: 13px;
+        align-self: center;
     }
     
     .project-bg {
+        position: absolute;
         left: -25px;
         right: -25px;
-        height: auto;
-        min-height: 350px;
-        border-radius: 20px;
+        top: calc(50% + 50px);
+        transform: translateY(-50%);
+        height: 250px;
+        z-index: 0;
+        border-radius: 15px;
     }
     
     .more-works {
@@ -941,6 +988,36 @@ main {
         font-size: 15px;
     }
     
+    .project-row {
+        margin-bottom: 50px;
+        flex-direction: column !important;
+        text-align: center;
+        position: relative;
+    }
+    
+    .project-left .project-media,
+    .project-right .project-media {
+        flex: none;
+        margin: 0 0 10px 0;
+        order: -1;
+        z-index: 2;
+        position: relative;
+    }
+    
+    .project-content {
+        max-width: 100%;
+        z-index: 1;
+        position: relative;
+        padding: 20px 25px 30px 25px;
+        border-radius: 12px;
+        margin-top: -10px;
+        align-items: center;
+    }
+    
+    .project-left .project-content {
+        margin-left: 0;
+    }
+    
     .project-title {
         font-size: 18px;
     }
@@ -950,10 +1027,20 @@ main {
         line-height: 22px;
     }
     
+    .project-btn {
+        margin: 20px auto 0 auto;
+        align-self: center;
+    }
+    
     .project-bg {
+        position: absolute;
         left: -20px;
         right: -20px;
-        border-radius: 15px;
+        top: calc(50% + 40px);
+        transform: translateY(-50%);
+        height: 220px;
+        z-index: 0;
+        border-radius: 12px;
     }
     
     .more-works {
