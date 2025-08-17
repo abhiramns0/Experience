@@ -62,7 +62,7 @@
     color: #FFFFFF;
     font-size: 14px;
     font-family: 'Sansation';
-    font-weight: 300;
+    font-weight: 400;
     transition: opacity 0.3s;
 }
 
@@ -366,7 +366,7 @@ main {
     margin-top: 60px; /* 40 */
     width: 110px; /* 130 */
     height: 50px; /* 60 */
-    background-color: transparent;
+    background-color: rgba(255, 255, 255, 0.04);/* background-color: transparent; */
     color: #FFFFFF;
     border: 0.5px solid #FFFFFF;
     border-radius: 15px;
