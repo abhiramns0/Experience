@@ -611,5 +611,24 @@
     animate();
   </script>
 
+<script>
+  let lastScrollTop = 0; 
+  const navbar = document.querySelector("nav");
+
+  window.addEventListener("scroll", function () {
+    let scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+    if (scrollTop > lastScrollTop) {
+      // Scrolling down → hide navbar
+      navbar.style.transform = "translateY(-100%)";
+    } else {
+      // Scrolling up → show navbar
+      navbar.style.transform = "translateY(0)";
+    }
+    lastScrollTop = scrollTop;
+  });
+</script>
+
+  
 </body>
 </html>
