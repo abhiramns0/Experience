@@ -137,10 +137,10 @@ main {
     font-family: 'Sansation';
     font-weight: 300;
     font-size: 18px;
-    max-width: 675px;
+    max-width: 685px;
     text-align: center;
     letter-spacing: 0.08em;
-    line-height: 32px;
+    line-height: 36px;
     z-index: 900;
 }
 
