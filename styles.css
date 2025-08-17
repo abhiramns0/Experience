@@ -809,6 +809,7 @@ main {
         flex-direction: column !important;
         text-align: center;
         position: relative;
+        padding-bottom: 20px; /* ← Adds visual space for background overflow */
     }
     
     .project-left .project-media,
@@ -1000,6 +1001,7 @@ main {
         flex-direction: column !important;
         text-align: center;
         position: relative;
+        padding-bottom: 15px; /* ← Adds visual space for background overflow */
     }
     
     .project-left .project-media,
@@ -1044,7 +1046,7 @@ main {
         left: -20px;
         right: -20px;
         top: auto;
-        bottom: 0;
+        bottom: -15;
         height: 200px;
         z-index: 0;
         border-radius: 12px;
