@@ -82,7 +82,7 @@ main {
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding-top: 100px;  /* Space for navbar */
+    /* Removed padding-top: 100px; to start background/content from top */
 }
 
 .hero-section #bg {
@@ -111,7 +111,7 @@ main {
     text-align: center;
     letter-spacing: 0.08em;
     line-height: 32px;
-    z-index: 1;
+    z-index: 900;
 }
 
 .scroll-indicator {
@@ -120,7 +120,7 @@ main {
     height: 60px;
     margin: 150px auto 0;
     cursor: pointer;
-    z-index: 1;
+    z-index: 1000;
     background: none;
     border: none;
 }
