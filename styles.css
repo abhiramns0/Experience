@@ -126,7 +126,7 @@ main {
 
 .hero-heading-image {
     display: block;
-    margin: 60px auto 0; /* Add 60px top margin instead of 0 */
+    margin: 80px auto 0; /* Add 60px top margin instead of 0 */
     width: 450px;
     height: auto;
     z-index: 1;
@@ -137,7 +137,7 @@ main {
     font-family: 'Sansation';
     font-weight: 300;
     font-size: 18px;
-    max-width: 650px;
+    max-width: 675px;
     text-align: center;
     letter-spacing: 0.08em;
     line-height: 32px;
