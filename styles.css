@@ -637,6 +637,7 @@ main {
         text-align: center;
         margin-bottom: 80px;
         position: relative;
+        padding-bottom: 15px; /* ← Adds visual space for background overflow */
     }
     
     .project-left .project-media,
@@ -671,7 +672,7 @@ main {
         left: -50px;
         right: -50px;
         top: auto;
-        bottom: 0;
+        bottom: -15px;
         height: 280px;
         z-index: 0;
         border-radius: 20px;
@@ -809,7 +810,7 @@ main {
         flex-direction: column !important;
         text-align: center;
         position: relative;
-        padding-bottom: 20px; /* ← Adds visual space for background overflow */
+        padding-bottom: 10px; /* ← Adds visual space for background overflow */
     }
     
     .project-left .project-media,
@@ -864,7 +865,7 @@ main {
         left: -25px;
         right: -25px;
         top: auto;
-        bottom: -20px; /* 0 */
+        bottom: -10px; /* 0 */
         height: 250px;
         z-index: 0;
         border-radius: 15px;
@@ -1001,7 +1002,7 @@ main {
         flex-direction: column !important;
         text-align: center;
         position: relative;
-        padding-bottom: 15px; /* ← Adds visual space for background overflow */
+        padding-bottom: 5px; /* ← Adds visual space for background overflow */
     }
     
     .project-left .project-media,
@@ -1046,7 +1047,7 @@ main {
         left: -20px;
         right: -20px;
         top: auto;
-        bottom: -15;
+        bottom: -5;
         height: 200px;
         z-index: 0;
         border-radius: 12px;
