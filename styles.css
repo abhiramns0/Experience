@@ -371,6 +371,7 @@ main {
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/*
 .more-works {
     width: 350px;
     height: 220px;
@@ -385,7 +386,8 @@ main {
     text-decoration: none;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
+*/
+/*
 .more-works:hover {
     transform: translateY(-5px);
     box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
@@ -398,7 +400,8 @@ main {
     font-size: 26px;
     color: #FFFFFF;
 }
-
+*/
+/*
 @keyframes bounceRight {
     0%, 100% {
         transform: translateX(0);
@@ -426,7 +429,65 @@ main {
 
 .arrow-down:hover, .arrow-right:hover {
     animation-play-state: paused;
+} 
+*/
+
+
+/* More Works */
+.more-works {
+    width: 100vw; /* Full viewport width */
+    height: 220px;
+    margin: 80px auto;
+    background-image: url('more-works-bg.jpg'); /* Replace with your seamless image */
+    background-size: auto 100%; /* Maintain height, allow horizontal tiling */
+    background-position-x: 0;
+    background-repeat: repeat-x; /* Tile horizontally for seamless loop */
+    animation: slideBackground 20s linear infinite; /* Adjust duration (20s) for speed */
+    border-radius: 0;
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    text-decoration: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+.more-works:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.more-works-title {
+    margin-top: 72px;
+    font-family: 'Sansation';
+    font-weight: 400;
+    font-size: 26px;
+    color: #FFFFFF;
+}
+
+.arrow-right-wrap {
+    margin-top: 40px;
+}
+
+.arrow-right {
+    animation: bounceRight 2s ease-in-out infinite;
+    stroke: #FFFFFF;
+    stroke-width: 2.5;
+    fill: none;
+    width: 40px;
+    height: 20px;
+}
+
+@keyframes slideBackground {
+    0% {
+        background-position-x: 0;
+    }
+    100% {
+        background-position-x: -100%; /* Shift left; use 100% for rightward motion */
+    }
+}
+
 
 /* About Section */
 .about {
