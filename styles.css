@@ -267,7 +267,7 @@ main {
     align-items: center;
     position: relative;
     overflow: visible;
-    margin-bottom: 120px;
+    margin-bottom: 60px; /* 120 */
     transition: box-shadow 0.3s ease;
 }
 
