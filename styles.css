@@ -434,50 +434,43 @@ main {
 
 
 .more-works {
-    width: 350px; /* Maintain original width for content */
-    height: 220px; /* Maintain original height */
-    margin: 80px auto;
-    /* Removed background-color */
-    border-radius: 40px;
-    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
+    margin: 80px auto;
+    padding: 72px 0 40px; /* Adjusted to maintain content spacing */
     text-decoration: none;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease;
 }
 
 .more-works:hover {
     transform: translateY(-5px);
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
 }
 
 .more-works-bg {
     position: absolute;
     left: -150px;
     right: -150px;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 100%; /* Match more-works height */
-    width: auto; /* Allow image to scale naturally */
-    object-fit: cover; /* Ensure image fills without distortion */
+    top: 0;
+    height: auto; /* Let image height scale naturally */
+    width: auto; /* Preserve aspect ratio */
+    object-fit: cover; /* Fill width without distortion */
     z-index: -1; /* Behind content */
-    border-radius: 40px; /* Match more-works border-radius */
 }
 
 .more-works-title {
-    margin-top: 72px;
     font-family: 'Sansation';
     font-weight: 400;
     font-size: 26px;
     color: #FFFFFF;
-    z-index: 1; /* Ensure text is above image */
+    z-index: 1; /* Above image */
+    margin: 0; /* Reset default margins */
 }
 
 .arrow-right-wrap {
     margin-top: 40px;
-    z-index: 1; /* Ensure arrow is above image */
+    z-index: 1; /* Above image */
 }
 
 
