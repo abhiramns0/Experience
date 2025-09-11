@@ -434,43 +434,45 @@ main {
 
 
 .more-works {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    margin: 80px auto;
-    padding: 72px 0 40px; /* Adjusted to maintain content spacing */
-    text-decoration: none;
-    transition: transform 0.3s ease;
+  position: relative;
+  height: 400px; /* Fixed height matching project backgrounds */
+  width: 350px;
+  margin: 80px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.3s ease;
 }
 
 .more-works:hover {
-    transform: translateY(-5px);
+  transform: translateY(-5px);
 }
 
 .more-works-bg {
-    position: absolute;
-    left: -80px;
-    right: -80px;
-    top: 0;
-    height: auto; /* Let image height scale naturally */
-    width: auto; /* Preserve aspect ratio */
-    object-fit: cover; /* Fill width without distortion */
-    z-index: -1; /* Behind content */
+  position: absolute;
+  left: -150px;
+  right: -150px;
+  top: 0;
+  bottom: 0;
+  width: calc(100% + 300px);
+  height: 400px;
+  object-fit: cover; /* Fills width and height without distortion, cropping if necessary */
+  z-index: -1;
 }
 
 .more-works-title {
-    font-family: 'Sansation';
-    font-weight: 400;
-    font-size: 26px;
-    color: #FFFFFF;
-    z-index: 1; /* Above image */
-    margin: 0; /* Reset default margins */
+  font-family: 'Sansation';
+  font-weight: 400;
+  font-size: 26px;
+  color: #FFFFFF;
+  z-index: 1;
+  margin-bottom: 40px; /* Adjusted spacing */
 }
 
 .arrow-right-wrap {
-    margin-top: 40px;
-    z-index: 1; /* Above image */
+  z-index: 1;
 }
 
 
