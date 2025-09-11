@@ -450,8 +450,8 @@ main {
 
 .more-works-bg {
     position: absolute;
-    left: -150px;
-    right: -150px;
+    left: -80px;
+    right: -80px;
     top: 0;
     height: auto; /* Let image height scale naturally */
     width: auto; /* Preserve aspect ratio */
