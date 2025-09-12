@@ -434,45 +434,67 @@ main {
 
 
 .more-works {
-  position: relative;
-  height: 400px; /* Fixed height matching project backgrounds */
-  width: 350px;
-  margin: 80px auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  transition: transform 0.3s ease;
-}
-
-.more-works:hover {
-  transform: translateY(-5px);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 80px auto;
+    padding: 72px 0 40px; /* Matches original spacing: 72px for title, 40px for arrow */
+    text-decoration: none;
+    /* Removed width, height, background-color, border-radius, box-shadow, and transform */
 }
 
 .more-works-bg {
-  position: absolute;
-  left: -150px;
-  right: -150px;
-  top: 0;
-  bottom: 0;
-  width: calc(100% + 300px);
-  height: 400px;
-  object-fit: cover; /* Fills width and height without distortion, cropping if necessary */
-  z-index: -1;
+    position: absolute;
+    left: -150px;
+    right: -150px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 400px; /* Matches .project-bg height */
+    width: auto; /* Preserve aspect ratio */
+    object-fit: cover; /* Fills width without distortion, crops vertically if needed */
+    z-index: -1; /* Behind content */
+    /* Removed border-radius to match .project-bg */
 }
 
 .more-works-title {
-  font-family: 'Sansation';
-  font-weight: 400;
-  font-size: 26px;
-  color: #FFFFFF;
-  z-index: 1;
-  margin-bottom: 40px; /* Adjusted spacing */
+    font-family: 'Sansation';
+    font-weight: 400;
+    font-size: 26px;
+    color: #FFFFFF;
+    margin: 0;
+    z-index: 1; /* Above image */
 }
 
 .arrow-right-wrap {
-  z-index: 1;
+    margin-top: 40px;
+    z-index: 1; /* Above image */
+}
+
+.arrow-right {
+    animation: bounceRight 2s ease-in-out infinite;
+    stroke: #FFFFFF;
+    stroke-width: 2.5;
+    fill: none;
+    width: 40px;
+    height: 20px;
+}
+
+@keyframes bounceRight {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(8px);
+    }
+    75% {
+        transform: translateX(-2px);
+    }
+}
+
+.arrow-right:hover {
+    animation-play-state: paused;
 }
 
 
